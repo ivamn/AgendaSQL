@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.danito.p_agendaavanzada.MainActivity">
+    <item
+        android:id="@+id/camera"
+        android:title="Hacer foto" />
+    <item
+        android:id="@+id/galeria"
+        android:title="Abrir Galería" />
+    <item
+        android:id="@+id/borrar"
+        android:title="Borrar foto" />
+    <item
+        android:id="@+id/cancelar"
+        android:title="Cancelar" />
+</menu>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/familia_menu_option"
+        android:checkable="true"
+        android:icon="@drawable/ic_friend"
+        android:title="Familia" />
+    <item
+        android:id="@+id/trabajo_menu_option"
+        android:checkable="true"
+        android:icon="@drawable/ic_work"
+        android:title="Trabajo" />
+    <item
+        android:id="@+id/amigos_menu_option"
+        android:checkable="true"
+        android:icon="@drawable/ic_people"
+        android:title="Amigos" />
+    <item
+        android:id="@+id/todos_menu_option"
+        android:checkable="true"
+        android:checked="true"
+        android:icon="@drawable/ic_all"
+        android:title="Todos" />
+</menu>

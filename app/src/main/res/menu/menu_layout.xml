@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/linear_option_menu"
+        android:icon="@drawable/ic_list"
+        android:title="Linear"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/grid_option_menu"
+        android:icon="@drawable/ic_grid"
+        android:title="Grid"
+        app:showAsAction="ifRoom" />
+</menu>
