@@ -40,15 +40,16 @@ private void leerContactos(Cursor cursor) {
     Contacto c;
     while (!cursor.isAfterLast()) {
         c = new Contacto();
-        c.setNombre(cursor.getString(0));
-        c.setApellido(cursor.getString(1));
-        c.setTelefono(cursor.getString(2));
-        c.setCorreo(cursor.getString(3));
-        Bitmap imagen = convertirBytesBitmap(cursor.getBlob(4));
+        c.setId(cursor.getInt(0));
+        c.setNombre(cursor.getString(1));
+        c.setApellido(cursor.getString(2));
+        c.setTelefono(cursor.getString(3));
+        c.setCorreo(cursor.getString(4));
+        Bitmap imagen = convertirBytesBitmap(cursor.getBlob(5));
         c.setImagen(imagen);
-        c.setAmigo(cursor.getInt(5) == 1);
-        c.setFamilia(cursor.getInt(6) == 1);
-        c.setTrabajo(cursor.getInt(7) == 1);
+        c.setAmigo(cursor.getInt(6) == 1);
+        c.setFamilia(cursor.getInt(7) == 1);
+        c.setTrabajo(cursor.getInt(8) == 1);
         contactos.add(c);
         cursor.moveToNext();
     }
@@ -59,32 +60,27 @@ private void leerContactos(Cursor cursor) {
 
 ##### guardarContacto
 
-El método `guardarContacto` combrueba que no exista un contacto con el nombre igual, a continuación, lo introduce en la base de datos utilizando `ContentValues`
+El método `guardarContacto` lo introduce en la base de datos utilizando `ContentValues`. No se indica ID porque es `AUTOINCREMENT`
 
 ```java
 private void guardarContacto(Contacto c) {
     contactosDatabase = dbContactos.getWritableDatabase();
     SQLiteDatabase readableDatabase = dbContactos.getReadableDatabase();
-    long count = DatabaseUtils.queryNumEntries(
-        readableDatabase, "contactos", "nombre = ?",
-        new String[]{c.getNombre()});
-    if (count == 0){
-        ContentValues values = new ContentValues();
-        values.put("nombre", c.getNombre());
-        values.put("apellido", c.getApellido());
-        values.put("telefono", c.getTelefono());
-        values.put("correo", c.getCorreo());
-        Bitmap b = c.getImagen();
-        byte[] bytesImagen = null;
-        if (b != null) {
-            bytesImagen = convertirImagenBytes(c.getImagen());
-        }
-        values.put("imagen", bytesImagen);
-        values.put("amigo", c.isAmigo());
-        values.put("trabajo", c.isTrabajo());
-        values.put("familia", c.isFamilia());
-        contactosDatabase.insert("contactos", null, values);
+    ContentValues values = new ContentValues();
+    values.put("nombre", c.getNombre());
+    values.put("apellido", c.getApellido());
+    values.put("telefono", c.getTelefono());
+    values.put("correo", c.getCorreo());
+    Bitmap b = c.getImagen();
+    byte[] bytesImagen = null;
+    if (b != null) {
+        bytesImagen = convertirImagenBytes(c.getImagen());
     }
+    values.put("imagen", bytesImagen);
+    values.put("amigo", c.isAmigo());
+    values.put("trabajo", c.isTrabajo());
+    values.put("familia", c.isFamilia());
+    contactosDatabase.insert("contactos", null, values);
     contactosDatabase.close();
     readableDatabase.close();
 }
@@ -94,14 +90,15 @@ private void guardarContacto(Contacto c) {
 
 ##### eliminarContacto
 
-El método `eliminarContacto` elimina un contacto de la base de datos utilizando su nombre como referencia
+El método `eliminarContacto` elimina un contacto de la base de datos utilizando su id como referencia
 
 ```java
 private void eliminarContacto(Contacto contacto) {
     if (dbContactos != null) {
         contactosDatabase = dbContactos.getWritableDatabase();
         contactosDatabase.delete(
-            "contactos", "nombre = ?", new String[] {contacto.getNombre()});
+            "contactos", "id = ?",
+            new String[] {String.valueOf(contacto.getId())});
         contactosDatabase.close();
     }
 }
@@ -111,16 +108,16 @@ private void eliminarContacto(Contacto contacto) {
 
 ##### editarContacto
 
-El método `editarContacto` comprueba que no exista un contacto con el nombre nuevo a editar, a continuación, edita el contacto anterior por el nuevo en la base de datos
+El método `editarContacto` comprueba que exista un contacto con el id anterior, a continuación, edita el contacto anterior por el nuevo en la base de datos
 
 ```java
 private void editarContacto(Contacto editado, Contacto nuevo) {
     contactosDatabase = dbContactos.getWritableDatabase();
     SQLiteDatabase readableDatabase = dbContactos.getReadableDatabase();
     long count = DatabaseUtils.queryNumEntries(
-        readableDatabase, "contactos", "nombre = ?",
-        new String[]{nuevo.getNombre()});
-    if (count == 0){
+        readableDatabase, "contactos", "id = ?",
+        new String[]{String.valueOf(editado.getId())});
+    if (count == 1){
         ContentValues values = new ContentValues();
         values.put("nombre", nuevo.getNombre());
         values.put("apellido", nuevo.getApellido());
@@ -136,7 +133,8 @@ private void editarContacto(Contacto editado, Contacto nuevo) {
         values.put("trabajo", nuevo.isTrabajo());
         values.put("familia", nuevo.isFamilia());
         contactosDatabase.update(
-            "contactos", values, "nombre = ?", new String[]{editado.getNombre()});
+            "contactos", values, "id = ?",
+            new String[]{String.valueOf(editado.getId())});
     }
     contactosDatabase.close();
     readableDatabase.close();

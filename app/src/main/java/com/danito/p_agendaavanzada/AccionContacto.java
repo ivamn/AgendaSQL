@@ -23,8 +23,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
-import com.danito.p_agendaavanzada.interfaces.OnAddContact;
-import com.danito.p_agendaavanzada.interfaces.OnEditContact;
 import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
 
@@ -34,8 +32,6 @@ import static com.danito.p_agendaavanzada.Util.bitmapFromUri;
 
 public class AccionContacto extends Fragment implements View.OnClickListener {
 
-    private OnEditContact editContact;
-    private OnAddContact addContact;
     private EditText editNombre, editApellido, editTelefono, editCorreo;
     private Button aceptarButton;
     private Bitmap bitmap;

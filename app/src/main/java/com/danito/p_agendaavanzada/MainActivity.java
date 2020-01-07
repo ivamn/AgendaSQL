@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
     private void eliminarContacto(Contacto contacto) {
         if (dbContactos != null) {
             contactosDatabase = dbContactos.getWritableDatabase();
-            contactosDatabase.delete("contactos", "nombre = ?", new String[] {contacto.getNombre()});
+            contactosDatabase.delete("contactos", "id = ?", new String[] {String.valueOf(contacto.getId())});
             contactosDatabase.close();
         }
     }
