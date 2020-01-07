@@ -5,6 +5,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Contacto implements Parcelable {
+    private int id;
     private String nombre;
     private String apellido;
     private String telefono;
@@ -38,6 +39,14 @@ public class Contacto implements Parcelable {
         this.telefono = contacto.getTelefono();
         this.correo = contacto.getCorreo();
         this.imagen = contacto.getImagen();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public boolean isAmigo() {
@@ -104,6 +113,7 @@ public class Contacto implements Parcelable {
         this.imagen = imagen;
     }
 
+
     @Override
     public int describeContents() {
         return 0;
@@ -111,22 +121,30 @@ public class Contacto implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(this.id);
         dest.writeString(this.nombre);
         dest.writeString(this.apellido);
         dest.writeString(this.telefono);
         dest.writeString(this.correo);
         dest.writeParcelable(this.imagen, flags);
+        dest.writeByte(this.amigo ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.trabajo ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.familia ? (byte) 1 : (byte) 0);
     }
 
     protected Contacto(Parcel in) {
+        this.id = in.readInt();
         this.nombre = in.readString();
         this.apellido = in.readString();
         this.telefono = in.readString();
         this.correo = in.readString();
         this.imagen = in.readParcelable(Bitmap.class.getClassLoader());
+        this.amigo = in.readByte() != 0;
+        this.trabajo = in.readByte() != 0;
+        this.familia = in.readByte() != 0;
     }
 
-    public static final Creator<Contacto> CREATOR = new Creator<Contacto>() {
+    public static final Parcelable.Creator<Contacto> CREATOR = new Parcelable.Creator<Contacto>() {
         @Override
         public Contacto createFromParcel(Parcel source) {
             return new Contacto(source);

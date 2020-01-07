@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         AccionContacto fragment = new AccionContacto();
         Bundle args = new Bundle();
-        contactoTemp = new Contacto(contacto);
+        contactoTemp = contacto;
         args.putParcelable("contacto", contacto);
         fragment.setArguments(args);
         transaction.replace(R.id.fragment_container, fragment);
@@ -215,15 +215,16 @@ public class MainActivity extends AppCompatActivity {
         Contacto c;
         while (!cursor.isAfterLast()) {
             c = new Contacto();
-            c.setNombre(cursor.getString(0));
-            c.setApellido(cursor.getString(1));
-            c.setTelefono(cursor.getString(2));
-            c.setCorreo(cursor.getString(3));
-            Bitmap imagen = convertirBytesBitmap(cursor.getBlob(4));
+            c.setId(cursor.getInt(0));
+            c.setNombre(cursor.getString(1));
+            c.setApellido(cursor.getString(2));
+            c.setTelefono(cursor.getString(3));
+            c.setCorreo(cursor.getString(4));
+            Bitmap imagen = convertirBytesBitmap(cursor.getBlob(5));
             c.setImagen(imagen);
-            c.setAmigo(cursor.getInt(5) == 1);
-            c.setFamilia(cursor.getInt(6) == 1);
-            c.setTrabajo(cursor.getInt(7) == 1);
+            c.setAmigo(cursor.getInt(6) == 1);
+            c.setFamilia(cursor.getInt(7) == 1);
+            c.setTrabajo(cursor.getInt(8) == 1);
             contactos.add(c);
             cursor.moveToNext();
         }
@@ -232,8 +233,8 @@ public class MainActivity extends AppCompatActivity {
     private void editarContacto(Contacto editado, Contacto nuevo) {
         contactosDatabase = dbContactos.getWritableDatabase();
         SQLiteDatabase readableDatabase = dbContactos.getReadableDatabase();
-        long count = DatabaseUtils.queryNumEntries(readableDatabase, "contactos", "nombre = ?", new String[]{nuevo.getNombre()});
-        if (count == 0){
+        long count = DatabaseUtils.queryNumEntries(readableDatabase, "contactos", "id = ?", new String[]{String.valueOf(editado.getId())});
+        if (count == 1){
             ContentValues values = new ContentValues();
             values.put("nombre", nuevo.getNombre());
             values.put("apellido", nuevo.getApellido());
@@ -248,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
             values.put("amigo", nuevo.isAmigo());
             values.put("trabajo", nuevo.isTrabajo());
             values.put("familia", nuevo.isFamilia());
-            contactosDatabase.update("contactos", values, "nombre = ?", new String[]{editado.getNombre()});
+            contactosDatabase.update("contactos", values, "id = ?", new String[]{String.valueOf(editado.getId())});
         }
         contactosDatabase.close();
         readableDatabase.close();
@@ -257,24 +258,21 @@ public class MainActivity extends AppCompatActivity {
     private void guardarContacto(Contacto c) {
         contactosDatabase = dbContactos.getWritableDatabase();
         SQLiteDatabase readableDatabase = dbContactos.getReadableDatabase();
-        long count = DatabaseUtils.queryNumEntries(readableDatabase, "contactos", "nombre = ?", new String[]{c.getNombre()});
-        if (count == 0){
-            ContentValues values = new ContentValues();
-            values.put("nombre", c.getNombre());
-            values.put("apellido", c.getApellido());
-            values.put("telefono", c.getTelefono());
-            values.put("correo", c.getCorreo());
-            Bitmap b = c.getImagen();
-            byte[] bytesImagen = null;
-            if (b != null) {
-                bytesImagen = convertirImagenBytes(c.getImagen());
-            }
-            values.put("imagen", bytesImagen);
-            values.put("amigo", c.isAmigo());
-            values.put("trabajo", c.isTrabajo());
-            values.put("familia", c.isFamilia());
-            contactosDatabase.insert("contactos", null, values);
+        ContentValues values = new ContentValues();
+        values.put("nombre", c.getNombre());
+        values.put("apellido", c.getApellido());
+        values.put("telefono", c.getTelefono());
+        values.put("correo", c.getCorreo());
+        Bitmap b = c.getImagen();
+        byte[] bytesImagen = null;
+        if (b != null) {
+            bytesImagen = convertirImagenBytes(c.getImagen());
         }
+        values.put("imagen", bytesImagen);
+        values.put("amigo", c.isAmigo());
+        values.put("trabajo", c.isTrabajo());
+        values.put("familia", c.isFamilia());
+        contactosDatabase.insert("contactos", null, values);
         contactosDatabase.close();
         readableDatabase.close();
     }
