@@ -2,6 +2,7 @@ package com.danito.p_agendaavanzada;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import com.danito.p_agendaavanzada.interfaces.OnRecyclerUpdated;
 import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
 import com.danito.p_agendaavanzada.recycler.Adaptador;
+import com.danito.p_agendaavanzada.recycler.AdaptadorCursorRecycler;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -40,6 +42,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     private final int COD_ELEGIR_IMAGEN = 1;
     private final int COD_TOMAR_FOTO = 2;
     public Adaptador adaptador;
+    private AdaptadorCursorRecycler adaptadorTemp;
     public RecyclerView recyclerView;
     private ArrayList<Contacto> contactos;
     private SwipeDetector swipeDetector;
@@ -47,10 +50,12 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     private FloatingActionButton fab;
     private Layout layout;
     private ContactoViewModel viewModel;
+    private Cursor cursor;
 
-    public VistaContactos(ArrayList<Contacto> contactos, Layout layout) {
+    public VistaContactos(ArrayList<Contacto> contactos, Layout layout, Cursor cursor) {
         this.contactos = contactos;
         this.layout = layout;
+        this.cursor = cursor;
     }
 
     @Nullable
@@ -91,7 +96,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
                         break;
                     case R.id.borrar:
                         contacto.setImagen(null);
-                        recyclerView.setAdapter(adaptador);
+                        recyclerView.setAdapter(adaptadorTemp);
                         break;
                 }
                 return true;
@@ -108,7 +113,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 contactos.remove(contacto);
-                recyclerView.setAdapter(adaptador);
+                recyclerView.setAdapter(adaptadorTemp);
                 viewModel.setData(new ContactoContainer(contacto, Util.Accion.ELIMINAR));
             }
         });
@@ -147,7 +152,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
         } else if (resultCode == RESULT_CANCELED) {
             Toast.makeText(getContext(), "Se ha cancelado la operación", Toast.LENGTH_LONG).show();
         }
-        recyclerView.setAdapter(adaptador);
+        recyclerView.setAdapter(adaptadorTemp);
     }
 
     @Override
@@ -227,6 +232,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     }
 
     private void updateRecycler() {
+        /*
         adaptador = new Adaptador(contactos, layout);
         adaptador.setOnTouchListener(swipeDetector);
         adaptador.setOnClickListener(this);
@@ -243,11 +249,28 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
                 mostrarPopupMenu(contacto, v);
             }
         });
+        */
+        adaptadorTemp = new AdaptadorCursorRecycler(cursor);
+        adaptadorTemp.setOnTouchListener(swipeDetector);
+        adaptadorTemp.setOnClickListener(this);
+        adaptadorTemp.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                eliminarContacto(v);
+                return false;
+            }
+        });
+        adaptadorTemp.setImageClickListener(new OnImageClickListener() {
+            @Override
+            public void onImageClick(final Contacto contacto, View v) {
+                mostrarPopupMenu(contacto, v);
+            }
+        });
         if (layout == Layout.GRID) {
             recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
         }
-        recyclerView.setAdapter(adaptador);
+        recyclerView.setAdapter(adaptadorTemp);
     }
 }

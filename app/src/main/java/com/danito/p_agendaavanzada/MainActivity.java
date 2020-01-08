@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private OnRecyclerUpdated onRecyclerUpdated;
     private ContactoViewModel viewModel;
     private Contacto contactoTemp;
+    private Cursor cursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
     private void replaceFragment() {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        vistaContactos = new VistaContactos(contactos, layout);
+        vistaContactos = new VistaContactos(contactos, layout, cursor);
         onRecyclerUpdated = vistaContactos;
         transaction.add(R.id.fragment_container, vistaContactos);
         transaction.addToBackStack(null);
@@ -154,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         editarContacto(contactoTemp, contacto);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        VistaContactos fragment = new VistaContactos(contactos, layout);
+        VistaContactos fragment = new VistaContactos(contactos, layout, cursor);
         onRecyclerUpdated = fragment;
         transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
@@ -166,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         guardarContacto(contacto.getContacto());
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        VistaContactos fragment = new VistaContactos(contactos, layout);
+        VistaContactos fragment = new VistaContactos(contactos, layout, cursor);
         onRecyclerUpdated = fragment;
         transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
@@ -204,8 +205,11 @@ public class MainActivity extends AppCompatActivity {
         contactos = new ArrayList<>();
         if (dbContactos != null) {
             contactosDatabase = dbContactos.getReadableDatabase();
+            cursor = contactosDatabase.rawQuery("SELECT * FROM contactos", null);
+            /*
             Cursor cursor = contactosDatabase.rawQuery("SELECT * FROM contactos", null);
             leerContactos(cursor);
+             */
             contactosDatabase.close();
         }
     }
