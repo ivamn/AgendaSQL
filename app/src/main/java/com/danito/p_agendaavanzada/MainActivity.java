@@ -210,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
             Cursor cursor = contactosDatabase.rawQuery("SELECT * FROM contactos", null);
             leerContactos(cursor);
              */
-            contactosDatabase.close();
         }
     }
 
