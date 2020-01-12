@@ -12,7 +12,7 @@ import java.io.ByteArrayOutputStream;
 
 public class Util {
     public enum Layout {GRID, LINEAR}
-    public enum Accion {CLICK, EDITAR, ADD, FAB_CLICK, ELIMINAR}
+    public enum Accion {CLICK, EDITAR, ADD, FAB_CLICK, ELIMINAR, IMAGE_CLICK}
 
     public static Bitmap bitmapFromUri(Uri uri, Context context) {
         ImageView imageViewTemp = new ImageView(context);

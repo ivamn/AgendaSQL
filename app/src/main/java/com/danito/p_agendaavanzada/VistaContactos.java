@@ -28,11 +28,8 @@ import com.danito.p_agendaavanzada.interfaces.OnImageClickListener;
 import com.danito.p_agendaavanzada.interfaces.OnRecyclerUpdated;
 import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
-import com.danito.p_agendaavanzada.recycler.Adaptador;
 import com.danito.p_agendaavanzada.recycler.AdaptadorCursorRecycler;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import java.util.ArrayList;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -41,10 +38,8 @@ import static com.danito.p_agendaavanzada.Util.bitmapFromUri;
 public class VistaContactos extends Fragment implements View.OnClickListener, OnRecyclerUpdated {
     private final int COD_ELEGIR_IMAGEN = 1;
     private final int COD_TOMAR_FOTO = 2;
-    public Adaptador adaptador;
-    private AdaptadorCursorRecycler adaptadorTemp;
+    public AdaptadorCursorRecycler adaptador;
     public RecyclerView recyclerView;
-    private ArrayList<Contacto> contactos;
     private SwipeDetector swipeDetector;
     private int indiceListaPulsado;
     private FloatingActionButton fab;
@@ -52,8 +47,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     private ContactoViewModel viewModel;
     private Cursor cursor;
 
-    public VistaContactos(ArrayList<Contacto> contactos, Layout layout, Cursor cursor) {
-        this.contactos = contactos;
+    public VistaContactos(Layout layout, Cursor cursor) {
         this.layout = layout;
         this.cursor = cursor;
     }
@@ -80,8 +74,9 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
         return rootView;
     }
 
-    private void mostrarPopupMenu(final Contacto contacto, View v) {
+    private void mostrarPopupMenu(View v) {
         PopupMenu pop = new PopupMenu(getContext(), v);
+        final Contacto contacto = adaptador.getItem(recyclerView.getChildAdapterPosition(v));
         indiceListaPulsado = recyclerView.getChildAdapterPosition(v);
         pop.getMenuInflater().inflate(R.menu.menu_foto, pop.getMenu());
         pop.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -96,7 +91,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
                         break;
                     case R.id.borrar:
                         contacto.setImagen(null);
-                        recyclerView.setAdapter(adaptadorTemp);
+                        recyclerView.setAdapter(adaptador);
                         break;
                 }
                 return true;
@@ -106,24 +101,8 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     }
 
     private void eliminarContacto(View v) {
-        final Contacto contacto = contactos.get(recyclerView.getChildAdapterPosition(v));
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setMessage("¿Quieres eliminar el contacto de " + contacto.getNombre() + "?");
-        builder.setPositiveButton("ELIMINAR", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                contactos.remove(contacto);
-                recyclerView.setAdapter(adaptadorTemp);
-                viewModel.setData(new ContactoContainer(contacto, Util.Accion.ELIMINAR));
-            }
-        });
-        builder.setNegativeButton("CANCELAR", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        builder.create().show();
+        viewModel.setData(new ContactoContainer(adaptador.getItem(recyclerView.getChildAdapterPosition(v)), Util.Accion.ELIMINAR));
+
     }
 
     private void tomarFoto() {
@@ -144,21 +123,24 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Contacto c = adaptador.getItem(indiceListaPulsado);
         if (requestCode == COD_ELEGIR_IMAGEN && resultCode == RESULT_OK && data != null) {
             Uri rutaImagen = data.getData();
-            contactos.get(indiceListaPulsado).setImagen(bitmapFromUri(rutaImagen, getContext()));
+            c.setImagen(bitmapFromUri(rutaImagen, getContext()));
+            viewModel.setData(new ContactoContainer(c, Util.Accion.EDITAR));
         } else if (requestCode == COD_TOMAR_FOTO && resultCode == RESULT_OK && data != null) {
-            contactos.get(indiceListaPulsado).setImagen((Bitmap) data.getExtras().get("data"));
+            c.setImagen((Bitmap) data.getExtras().get("data"));
+            viewModel.setData(new ContactoContainer(c, Util.Accion.EDITAR));
         } else if (resultCode == RESULT_CANCELED) {
             Toast.makeText(getContext(), "Se ha cancelado la operación", Toast.LENGTH_LONG).show();
         }
-        recyclerView.setAdapter(adaptadorTemp);
+        recyclerView.setAdapter(adaptador);
     }
 
     @Override
     public void onClick(View v) {
         indiceListaPulsado = recyclerView.getChildAdapterPosition(v);
-        Contacto contacto = contactos.get(recyclerView.getChildAdapterPosition(v));
+        Contacto contacto = adaptador.getItem(recyclerView.getChildAdapterPosition(v));
         if (swipeDetector.swipeDetected()) {
             switch (swipeDetector.getAction()) {
                 case LR:
@@ -226,14 +208,14 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     }
 
     @Override
-    public void onRecyclerUpdated(Layout layout) {
+    public void onRecyclerUpdated(Layout layout, Cursor cursor) {
         this.layout = layout;
+        this.cursor = cursor;
         updateRecycler();
     }
 
     private void updateRecycler() {
-        /*
-        adaptador = new Adaptador(contactos, layout);
+        adaptador = new AdaptadorCursorRecycler(cursor);
         adaptador.setOnTouchListener(swipeDetector);
         adaptador.setOnClickListener(this);
         adaptador.setOnLongClickListener(new View.OnLongClickListener() {
@@ -246,24 +228,8 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
         adaptador.setImageClickListener(new OnImageClickListener() {
             @Override
             public void onImageClick(final Contacto contacto, View v) {
-                mostrarPopupMenu(contacto, v);
-            }
-        });
-        */
-        adaptadorTemp = new AdaptadorCursorRecycler(cursor);
-        adaptadorTemp.setOnTouchListener(swipeDetector);
-        adaptadorTemp.setOnClickListener(this);
-        adaptadorTemp.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                eliminarContacto(v);
-                return false;
-            }
-        });
-        adaptadorTemp.setImageClickListener(new OnImageClickListener() {
-            @Override
-            public void onImageClick(final Contacto contacto, View v) {
-                mostrarPopupMenu(contacto, v);
+                mostrarPopupMenu(v);
+                viewModel.setData(new ContactoContainer(contacto, Util.Accion.IMAGE_CLICK));
             }
         });
         if (layout == Layout.GRID) {
@@ -271,6 +237,6 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
         }
-        recyclerView.setAdapter(adaptadorTemp);
+        recyclerView.setAdapter(adaptador);
     }
 }

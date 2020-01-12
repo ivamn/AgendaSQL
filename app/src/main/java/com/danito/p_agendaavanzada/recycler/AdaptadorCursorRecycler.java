@@ -177,4 +177,9 @@ public class AdaptadorCursorRecycler extends AbsAdaptadorCursorRecycler
             imageClickListener = listener;
         }
     }
+
+    public Contacto getItem(int position){
+        getCursor().moveToPosition(position);
+        return getContactoFromCursor(getCursor());
+    }
 }

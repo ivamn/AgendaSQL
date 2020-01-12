@@ -18,6 +18,10 @@ public class Contacto implements Parcelable {
     public Contacto() {
     }
 
+    public Contacto(int id) {
+        this.id = id;
+    }
+
     public Contacto(String nombre, String apellido, String telefono, String correo, Bitmap imagen) {
         this.nombre = nombre;
         this.apellido = apellido;

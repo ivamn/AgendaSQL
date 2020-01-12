@@ -25,6 +25,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -33,7 +34,7 @@ import static com.danito.p_agendaavanzada.Util.bitmapFromUri;
 public class AccionContacto extends Fragment implements View.OnClickListener {
 
     private EditText editNombre, editApellido, editTelefono, editCorreo;
-    private Button aceptarButton;
+    private FloatingActionButton aceptarButton;
     private Bitmap bitmap;
     private Contacto contacto;
     private ImageView imageView;
@@ -174,9 +175,11 @@ public class AccionContacto extends Fragment implements View.OnClickListener {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == COD_ELEGIR_IMAGEN && resultCode == RESULT_OK && data != null) {
             bitmap = bitmapFromUri(data.getData(), getContext());
+            contacto.setImagen(bitmap);
             imageView.setImageBitmap(bitmap);
         } else if (requestCode == COD_TOMAR_FOTO && resultCode == RESULT_OK && data != null) {
             bitmap = (Bitmap) data.getExtras().get("data");
+            contacto.setImagen(bitmap);
             imageView.setImageBitmap(bitmap);
         } else if (resultCode == RESULT_CANCELED) {
             Toast.makeText(getContext(), "Se ha cancelado la operación", Toast.LENGTH_LONG).show();

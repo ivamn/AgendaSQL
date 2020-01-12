@@ -51,4 +51,8 @@ public abstract class AbsAdaptadorCursorRecycler extends RecyclerView.Adapter {
         }
         return RecyclerView.NO_ID;
     }
+
+    public Cursor getCursor() {
+        return cursor;
+    }
 }

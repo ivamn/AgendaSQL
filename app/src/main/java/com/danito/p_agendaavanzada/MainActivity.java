@@ -1,6 +1,7 @@
 package com.danito.p_agendaavanzada;
 
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -12,6 +13,7 @@ import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
@@ -27,16 +29,11 @@ import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
 import com.google.android.material.navigation.NavigationView;
 
-import java.util.ArrayList;
-
 import static com.danito.p_agendaavanzada.Util.convertirBytesBitmap;
 import static com.danito.p_agendaavanzada.Util.convertirImagenBytes;
 
 public class MainActivity extends AppCompatActivity {
-
     private BDContactos dbContactos;
-    private SQLiteDatabase contactosDatabase;
-    public ArrayList<Contacto> contactos;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private Layout layout;
@@ -88,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                         vistaContactos.adaptador.getFilter().filter("Todo");
                         break;
                 }
-                onRecyclerUpdated.onRecyclerUpdated(layout);
+                onRecyclerUpdated.onRecyclerUpdated(layout, cursor);
                 menuItem.setChecked(true);
                 drawerLayout.closeDrawers();
                 return true;
@@ -115,23 +112,46 @@ public class MainActivity extends AppCompatActivity {
                     case ELIMINAR:
                         eliminarContacto(contacto.getContacto());
                         break;
+                    case IMAGE_CLICK:
+                        contactoTemp = contacto.getContacto();
+                        break;
                 }
             }
         });
     }
 
-    private void eliminarContacto(Contacto contacto) {
-        if (dbContactos != null) {
-            contactosDatabase = dbContactos.getWritableDatabase();
-            contactosDatabase.delete("contactos", "id = ?", new String[] {String.valueOf(contacto.getId())});
-            contactosDatabase.close();
-        }
+    private void eliminarContacto(final Contacto contacto) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("¿Quieres eliminar el contacto de " + contacto.getNombre() + "?");
+        builder.setPositiveButton("ELIMINAR", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (dbContactos != null) {
+                    SQLiteDatabase contactosDatabase = dbContactos.getWritableDatabase();
+                    contactosDatabase.delete("contactos", "id = ?", new String[] {String.valueOf(contacto.getId())});
+                    contactosDatabase.close();
+                    actualizarDatos();
+                }
+            }
+        });
+        builder.setNegativeButton("CANCELAR", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.create().show();
+    }
+
+    private void actualizarDatos(){
+        cargarDatos();
+        onRecyclerUpdated.onRecyclerUpdated(layout, cursor);
     }
 
     private void replaceFragment() {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        vistaContactos = new VistaContactos(contactos, layout, cursor);
+        vistaContactos = new VistaContactos(layout, cursor);
         onRecyclerUpdated = vistaContactos;
         transaction.add(R.id.fragment_container, vistaContactos);
         transaction.addToBackStack(null);
@@ -152,10 +172,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void editContact(Contacto contacto) {
-        editarContacto(contactoTemp, contacto);
+        editarContactoDatabase(contactoTemp, contacto);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        VistaContactos fragment = new VistaContactos(contactos, layout, cursor);
+        actualizarDatos();
+        VistaContactos fragment = new VistaContactos(layout, cursor);
         onRecyclerUpdated = fragment;
         transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
@@ -163,11 +184,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addContact(ContactoContainer contacto) {
-        contactos.add(contacto.getContacto());
         guardarContacto(contacto.getContacto());
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        VistaContactos fragment = new VistaContactos(contactos, layout, cursor);
+        cargarDatos();
+        VistaContactos fragment = new VistaContactos(layout, cursor);
         onRecyclerUpdated = fragment;
         transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
@@ -191,21 +212,20 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.linear_option_menu:
                 layout = Layout.LINEAR;
-                onRecyclerUpdated.onRecyclerUpdated(Layout.LINEAR);
+                onRecyclerUpdated.onRecyclerUpdated(Layout.LINEAR, cursor);
                 break;
             case R.id.grid_option_menu:
                 layout = Layout.GRID;
-                onRecyclerUpdated.onRecyclerUpdated(Layout.GRID);
+                onRecyclerUpdated.onRecyclerUpdated(Layout.GRID, cursor);
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void cargarDatos() {
-        contactos = new ArrayList<>();
         if (dbContactos != null) {
-            contactosDatabase = dbContactos.getReadableDatabase();
-            cursor = contactosDatabase.rawQuery("SELECT * FROM contactos", null);
+            SQLiteDatabase writableDatabase = dbContactos.getReadableDatabase();
+            cursor = writableDatabase.rawQuery("SELECT * FROM contactos", null);
             /*
             Cursor cursor = contactosDatabase.rawQuery("SELECT * FROM contactos", null);
             leerContactos(cursor);
@@ -228,13 +248,12 @@ public class MainActivity extends AppCompatActivity {
             c.setAmigo(cursor.getInt(6) == 1);
             c.setFamilia(cursor.getInt(7) == 1);
             c.setTrabajo(cursor.getInt(8) == 1);
-            contactos.add(c);
             cursor.moveToNext();
         }
     }
 
-    private void editarContacto(Contacto editado, Contacto nuevo) {
-        contactosDatabase = dbContactos.getWritableDatabase();
+    private void editarContactoDatabase(Contacto editado, Contacto nuevo) {
+        SQLiteDatabase writableDatabase = dbContactos.getWritableDatabase();
         SQLiteDatabase readableDatabase = dbContactos.getReadableDatabase();
         long count = DatabaseUtils.queryNumEntries(readableDatabase, "contactos", "id = ?", new String[]{String.valueOf(editado.getId())});
         if (count == 1){
@@ -252,14 +271,14 @@ public class MainActivity extends AppCompatActivity {
             values.put("amigo", nuevo.isAmigo());
             values.put("trabajo", nuevo.isTrabajo());
             values.put("familia", nuevo.isFamilia());
-            contactosDatabase.update("contactos", values, "id = ?", new String[]{String.valueOf(editado.getId())});
+            writableDatabase.update("contactos", values, "id = ?", new String[]{String.valueOf(editado.getId())});
         }
-        contactosDatabase.close();
+        writableDatabase.close();
         readableDatabase.close();
     }
 
     private void guardarContacto(Contacto c) {
-        contactosDatabase = dbContactos.getWritableDatabase();
+        SQLiteDatabase writableDatabase = dbContactos.getWritableDatabase();
         SQLiteDatabase readableDatabase = dbContactos.getReadableDatabase();
         ContentValues values = new ContentValues();
         values.put("nombre", c.getNombre());
@@ -275,8 +294,8 @@ public class MainActivity extends AppCompatActivity {
         values.put("amigo", c.isAmigo());
         values.put("trabajo", c.isTrabajo());
         values.put("familia", c.isFamilia());
-        contactosDatabase.insert("contactos", null, values);
-        contactosDatabase.close();
+        writableDatabase.insert("contactos", null, values);
+        writableDatabase.close();
         readableDatabase.close();
     }
 
