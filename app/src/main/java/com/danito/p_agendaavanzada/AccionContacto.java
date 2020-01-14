@@ -75,7 +75,9 @@ public class AccionContacto extends Fragment implements View.OnClickListener {
                                 elegirImagen();
                                 break;
                             case R.id.borrar:
-                                contacto.setImagen(null);
+                                bitmap = null;
+                                contacto.setImagen(bitmap);
+                                imageView.setImageBitmap(bitmap);
                                 break;
                         }
                         return true;
@@ -97,7 +99,8 @@ public class AccionContacto extends Fragment implements View.OnClickListener {
 
         if (accion == Util.Accion.EDITAR) {
             if (contacto.getImagen() != null){
-                imageView.setImageBitmap(contacto.getImagen());
+                bitmap = contacto.getImagen();
+                imageView.setImageBitmap(bitmap);
             }
             editNombre.setText(contacto.getNombre());
             editApellido.setText(contacto.getApellido());
