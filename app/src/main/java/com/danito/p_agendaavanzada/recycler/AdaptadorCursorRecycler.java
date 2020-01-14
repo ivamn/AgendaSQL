@@ -22,43 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AdaptadorCursorRecycler extends AbsAdaptadorCursorRecycler
-        implements View.OnClickListener, View.OnLongClickListener, View.OnTouchListener, Filterable {
+        implements View.OnClickListener, View.OnLongClickListener, View.OnTouchListener {
     private ArrayList<Contacto> contactos, contactosCompletos;
     private View.OnClickListener clickListener;
     private OnImageClickListener imageClickListener;
     private View.OnLongClickListener longClickListener;
     private View.OnTouchListener touchListener;
     private Layout layout;
-
-    private Filter filter = new Filter() {
-        @Override
-        protected FilterResults performFiltering(CharSequence constraint) {
-            String seleccion = constraint.toString();
-            ArrayList<Contacto> datosFiltrados = new ArrayList<>();
-            if (constraint == null || seleccion.length() == 0) {
-                datosFiltrados.addAll(contactosCompletos);
-            } else if (seleccion.equals("Todo")) {
-                datosFiltrados.addAll(contactosCompletos);
-            } else {
-                for (Contacto c : contactos) {
-                    if (seleccion.equals("Amigo") && c.isAmigo()) datosFiltrados.add(c);
-                    else if (seleccion.equals("Trabajo") && c.isTrabajo()) datosFiltrados.add(c);
-                    else if (seleccion.equals("Familia") && c.isFamilia()) datosFiltrados.add(c);
-                }
-            }
-            FilterResults results = new FilterResults();
-            results.values = datosFiltrados;
-            results.count = datosFiltrados.size();
-            return results;
-        }
-
-        @Override
-        protected void publishResults(CharSequence constraint, FilterResults results) {
-            contactos.clear();
-            contactos.addAll((List) results.values);
-            notifyDataSetChanged();
-        }
-    };
 
     public AdaptadorCursorRecycler(Cursor c, Layout layout) {
         super(c);
@@ -119,17 +89,6 @@ public class AdaptadorCursorRecycler extends AbsAdaptadorCursorRecycler
         } else {
             ((Holder) holder).bind(getContactoFromCursor(cursor));
         }
-    }
-    /*
-    @Override
-    public int getItemCount() {
-        return contactos.size();
-    }
-     */
-
-    @Override
-    public Filter getFilter() {
-        return filter;
     }
 
     public void setOnClickListener(View.OnClickListener listener) {

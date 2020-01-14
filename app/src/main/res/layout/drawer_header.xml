@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:layout_centerVertical="true"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher_background" />
+        android:src="@drawable/imgfondo" />
 
     <ImageView
         android:id="@+id/perfil_image_menu"
@@ -26,6 +26,7 @@
         android:layout_below="@id/perfil_image_menu"
         android:layout_alignParentStart="true"
         android:layout_margin="8dp"
-        android:text="Iván Gallego" />
+        android:text="Iván Gallego"
+        android:textColor="@android:color/black"/>
 
 </RelativeLayout>

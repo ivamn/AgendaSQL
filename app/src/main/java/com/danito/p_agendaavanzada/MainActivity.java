@@ -73,16 +73,16 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.familia_menu_option:
-                        vistaContactos.adaptador.getFilter().filter("Familia");
+                        // Activar el filtro de familia
                         break;
                     case R.id.amigos_menu_option:
-                        vistaContactos.adaptador.getFilter().filter("Amigo");
+                        // Activar el filtro de amigos
                         break;
                     case R.id.trabajo_menu_option:
-                        vistaContactos.adaptador.getFilter().filter("Trabajo");
+                        // Activar el filtro de trabajo
                         break;
                     case R.id.todos_menu_option:
-                        vistaContactos.adaptador.getFilter().filter("Todo");
+                        // Desactivar filtro
                         break;
                 }
                 onRecyclerUpdated.onRecyclerUpdated(layout, cursor);
