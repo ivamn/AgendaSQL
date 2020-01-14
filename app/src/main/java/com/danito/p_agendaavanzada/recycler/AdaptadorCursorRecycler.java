@@ -60,8 +60,9 @@ public class AdaptadorCursorRecycler extends AbsAdaptadorCursorRecycler
         }
     };
 
-    public AdaptadorCursorRecycler(Cursor c) {
+    public AdaptadorCursorRecycler(Cursor c, Layout layout) {
         super(c);
+        this.layout = layout;
     }
 
     @NonNull

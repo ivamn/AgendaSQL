@@ -91,6 +91,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
                         break;
                     case R.id.borrar:
                         contacto.setImagen(null);
+                        viewModel.setData(new ContactoContainer(contacto, Util.Accion.EDITAR));
                         recyclerView.setAdapter(adaptador);
                         break;
                 }
@@ -151,7 +152,6 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
                     break;
             }
         } else {
-            //clickItemListener.onClickItemListener(contacto, recyclerView.getChildAdapterPosition(v));
             viewModel.setData(new ContactoContainer(contacto, Util.Accion.CLICK));
         }
     }
@@ -215,7 +215,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     }
 
     private void updateRecycler() {
-        adaptador = new AdaptadorCursorRecycler(cursor);
+        adaptador = new AdaptadorCursorRecycler(cursor, layout);
         adaptador.setOnTouchListener(swipeDetector);
         adaptador.setOnClickListener(this);
         adaptador.setOnLongClickListener(new View.OnLongClickListener() {
