@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,6 +29,7 @@ import com.danito.p_agendaavanzada.interfaces.OnImageClickListener;
 import com.danito.p_agendaavanzada.interfaces.OnRecyclerUpdated;
 import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
+import com.danito.p_agendaavanzada.pojo.UpdateContainer;
 import com.danito.p_agendaavanzada.recycler.AdaptadorCursorRecycler;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -44,7 +46,8 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     private int indiceListaPulsado;
     private FloatingActionButton fab;
     private Layout layout;
-    private ContactoViewModel viewModel;
+    private ContactoViewModel contactoViewModel;
+    private UpdateViewModel updateViewModel;
     private Cursor cursor;
 
     public VistaContactos(Layout layout, Cursor cursor) {
@@ -58,13 +61,23 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.vista_contactos, container, false);
 
-        viewModel = ViewModelProviders.of(getActivity()).get(ContactoViewModel.class);
+        contactoViewModel = ViewModelProviders.of(getActivity()).get(ContactoViewModel.class);
+        updateViewModel = ViewModelProviders.of(getActivity()).get(UpdateViewModel.class);
 
         fab = rootView.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewModel.setData(new ContactoContainer(null, Util.Accion.FAB_CLICK));
+                contactoViewModel.setData(new ContactoContainer(null, Util.Accion.FAB_CLICK));
+            }
+        });
+
+        updateViewModel.getData().observe(this, new Observer<UpdateContainer>() {
+            @Override
+            public void onChanged(UpdateContainer container) {
+                layout = container.getLayout();
+                cursor = container.getCursor();
+                updateRecycler();
             }
         });
 
@@ -91,7 +104,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
                         break;
                     case R.id.borrar:
                         contacto.setImagen(null);
-                        viewModel.setData(new ContactoContainer(contacto, Util.Accion.EDITAR));
+                        contactoViewModel.setData(new ContactoContainer(contacto, Util.Accion.EDITAR));
                         recyclerView.setAdapter(adaptador);
                         break;
                 }
@@ -102,7 +115,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
     }
 
     private void eliminarContacto(View v) {
-        viewModel.setData(new ContactoContainer(adaptador.getItem(recyclerView.getChildAdapterPosition(v)), Util.Accion.ELIMINAR));
+        contactoViewModel.setData(new ContactoContainer(adaptador.getItem(recyclerView.getChildAdapterPosition(v)), Util.Accion.ELIMINAR));
 
     }
 
@@ -128,10 +141,10 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
         if (requestCode == COD_ELEGIR_IMAGEN && resultCode == RESULT_OK && data != null) {
             Uri rutaImagen = data.getData();
             c.setImagen(bitmapFromUri(rutaImagen, getContext()));
-            viewModel.setData(new ContactoContainer(c, Util.Accion.EDITAR));
+            contactoViewModel.setData(new ContactoContainer(c, Util.Accion.EDITAR));
         } else if (requestCode == COD_TOMAR_FOTO && resultCode == RESULT_OK && data != null) {
             c.setImagen((Bitmap) data.getExtras().get("data"));
-            viewModel.setData(new ContactoContainer(c, Util.Accion.EDITAR));
+            contactoViewModel.setData(new ContactoContainer(c, Util.Accion.EDITAR));
         } else if (resultCode == RESULT_CANCELED) {
             Toast.makeText(getContext(), "Se ha cancelado la operación", Toast.LENGTH_LONG).show();
         }
@@ -152,7 +165,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
                     break;
             }
         } else {
-            viewModel.setData(new ContactoContainer(contacto, Util.Accion.CLICK));
+            contactoViewModel.setData(new ContactoContainer(contacto, Util.Accion.CLICK));
         }
     }
 
@@ -229,7 +242,7 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
             @Override
             public void onImageClick(final Contacto contacto, View v) {
                 mostrarPopupMenu(v);
-                viewModel.setData(new ContactoContainer(contacto, Util.Accion.IMAGE_CLICK));
+                contactoViewModel.setData(new ContactoContainer(contacto, Util.Accion.IMAGE_CLICK));
             }
         });
         if (layout == Layout.GRID) {

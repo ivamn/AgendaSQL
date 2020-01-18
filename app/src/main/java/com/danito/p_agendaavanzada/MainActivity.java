@@ -27,6 +27,7 @@ import com.danito.p_agendaavanzada.Util.Layout;
 import com.danito.p_agendaavanzada.interfaces.OnRecyclerUpdated;
 import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
+import com.danito.p_agendaavanzada.pojo.UpdateContainer;
 import com.google.android.material.navigation.NavigationView;
 
 import static com.danito.p_agendaavanzada.Util.convertirBytesBitmap;
@@ -39,7 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private Layout layout;
     private VistaContactos vistaContactos;
     private OnRecyclerUpdated onRecyclerUpdated;
-    private ContactoViewModel viewModel;
+    private ContactoViewModel contactoViewModel;
+    private UpdateViewModel updateViewModel;
     private Contacto contactoTemp;
     private Cursor cursor;
 
@@ -49,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         dbContactos = new BDContactos(this, "DBCONTACTOS", null, 1);
         cargarDatos();
-
+        updateViewModel = ViewModelProviders.of(this).get(UpdateViewModel.class);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -71,29 +73,30 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                SQLiteDatabase readableDatabase = dbContactos.getReadableDatabase();
                 switch (menuItem.getItemId()) {
                     case R.id.familia_menu_option:
-                        // Activar el filtro de familia
+                        cursor = readableDatabase.rawQuery("SELECT * FROM contactos WHERE familia = ?", new String[]{"1"});
                         break;
                     case R.id.amigos_menu_option:
-                        // Activar el filtro de amigos
+                        cursor = readableDatabase.rawQuery("SELECT * FROM contactos WHERE amigo = ?", new String[]{"1"});
                         break;
                     case R.id.trabajo_menu_option:
-                        // Activar el filtro de trabajo
+                        cursor = readableDatabase.rawQuery("SELECT * FROM contactos WHERE trabajo = ?", new String[]{"1"});
                         break;
-                    case R.id.todos_menu_option:
-                        // Desactivar filtro
+                    default:
+                        cursor = readableDatabase.rawQuery("SELECT * FROM contactos", null);
                         break;
                 }
-                onRecyclerUpdated.onRecyclerUpdated(layout, cursor);
+                updateViewModel.setData(new UpdateContainer(layout, cursor));
                 menuItem.setChecked(true);
                 drawerLayout.closeDrawers();
                 return true;
             }
         });
 
-        viewModel = ViewModelProviders.of(this).get(ContactoViewModel.class);
-        viewModel.getData().observe(this, new Observer<ContactoContainer>() {
+        contactoViewModel = ViewModelProviders.of(this).get(ContactoViewModel.class);
+        contactoViewModel.getData().observe(this, new Observer<ContactoContainer>() {
             @Override
             public void onChanged(ContactoContainer contacto) {
                 switch (contacto.getAccion()) {
@@ -145,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void actualizarDatos(){
         cargarDatos();
-        onRecyclerUpdated.onRecyclerUpdated(layout, cursor);
+        updateViewModel.setData(new UpdateContainer(layout, cursor));
     }
 
     private void replaceFragment() {
@@ -212,11 +215,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.linear_option_menu:
                 layout = Layout.LINEAR;
-                onRecyclerUpdated.onRecyclerUpdated(Layout.LINEAR, cursor);
+                updateViewModel.setData(new UpdateContainer(layout, cursor));
                 break;
             case R.id.grid_option_menu:
                 layout = Layout.GRID;
-                onRecyclerUpdated.onRecyclerUpdated(Layout.GRID, cursor);
+                updateViewModel.setData(new UpdateContainer(layout, cursor));
                 break;
         }
         return super.onOptionsItemSelected(item);

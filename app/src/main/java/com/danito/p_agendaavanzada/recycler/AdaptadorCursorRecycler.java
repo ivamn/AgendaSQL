@@ -1,13 +1,10 @@
 package com.danito.p_agendaavanzada.recycler;
 
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Filter;
-import android.widget.Filterable;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,12 +15,8 @@ import com.danito.p_agendaavanzada.Util.Layout;
 import com.danito.p_agendaavanzada.interfaces.OnImageClickListener;
 import com.danito.p_agendaavanzada.pojo.Contacto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class AdaptadorCursorRecycler extends AbsAdaptadorCursorRecycler
         implements View.OnClickListener, View.OnLongClickListener, View.OnTouchListener {
-    private ArrayList<Contacto> contactos, contactosCompletos;
     private View.OnClickListener clickListener;
     private OnImageClickListener imageClickListener;
     private View.OnLongClickListener longClickListener;
@@ -68,7 +61,7 @@ public class AdaptadorCursorRecycler extends AbsAdaptadorCursorRecycler
         }
     }
 
-    private Contacto getContactoFromCursor(Cursor cursor){
+    private Contacto getContactoFromCursor(Cursor cursor) {
         Contacto c = new Contacto();
         c.setId(cursor.getInt(0));
         c.setNombre(cursor.getString(1));
@@ -138,7 +131,7 @@ public class AdaptadorCursorRecycler extends AbsAdaptadorCursorRecycler
         }
     }
 
-    public Contacto getItem(int position){
+    public Contacto getItem(int position) {
         getCursor().moveToPosition(position);
         return getContactoFromCursor(getCursor());
     }
