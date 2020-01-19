@@ -24,7 +24,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.danito.p_agendaavanzada.Util.Layout;
-import com.danito.p_agendaavanzada.interfaces.OnRecyclerUpdated;
 import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
 import com.danito.p_agendaavanzada.pojo.UpdateContainer;
@@ -36,11 +35,7 @@ import static com.danito.p_agendaavanzada.Util.convertirImagenBytes;
 public class MainActivity extends AppCompatActivity {
     private BDContactos dbContactos;
     private DrawerLayout drawerLayout;
-    private NavigationView navigationView;
     private Layout layout;
-    private VistaContactos vistaContactos;
-    private OnRecyclerUpdated onRecyclerUpdated;
-    private ContactoViewModel contactoViewModel;
     private UpdateViewModel updateViewModel;
     private Contacto contactoTemp;
     private Cursor cursor;
@@ -69,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
         replaceFragment();
 
-        navigationView = findViewById(R.id.navigation_view);
+        NavigationView navigationView = findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -95,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        contactoViewModel = ViewModelProviders.of(this).get(ContactoViewModel.class);
+        ContactoViewModel contactoViewModel = ViewModelProviders.of(this).get(ContactoViewModel.class);
         contactoViewModel.getData().observe(this, new Observer<ContactoContainer>() {
             @Override
             public void onChanged(ContactoContainer contacto) {
@@ -154,8 +149,7 @@ public class MainActivity extends AppCompatActivity {
     private void replaceFragment() {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        vistaContactos = new VistaContactos(layout, cursor);
-        onRecyclerUpdated = vistaContactos;
+        VistaContactos vistaContactos = new VistaContactos(layout, cursor);
         transaction.add(R.id.fragment_container, vistaContactos);
         transaction.addToBackStack(null);
         transaction.commit();
@@ -180,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         actualizarDatos();
         VistaContactos fragment = new VistaContactos(layout, cursor);
-        onRecyclerUpdated = fragment;
         transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
@@ -192,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         cargarDatos();
         VistaContactos fragment = new VistaContactos(layout, cursor);
-        onRecyclerUpdated = fragment;
         transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
@@ -229,29 +221,6 @@ public class MainActivity extends AppCompatActivity {
         if (dbContactos != null) {
             SQLiteDatabase writableDatabase = dbContactos.getReadableDatabase();
             cursor = writableDatabase.rawQuery("SELECT * FROM contactos", null);
-            /*
-            Cursor cursor = contactosDatabase.rawQuery("SELECT * FROM contactos", null);
-            leerContactos(cursor);
-             */
-        }
-    }
-
-    private void leerContactos(Cursor cursor) {
-        cursor.moveToFirst();
-        Contacto c;
-        while (!cursor.isAfterLast()) {
-            c = new Contacto();
-            c.setId(cursor.getInt(0));
-            c.setNombre(cursor.getString(1));
-            c.setApellido(cursor.getString(2));
-            c.setTelefono(cursor.getString(3));
-            c.setCorreo(cursor.getString(4));
-            Bitmap imagen = convertirBytesBitmap(cursor.getBlob(5));
-            c.setImagen(imagen);
-            c.setAmigo(cursor.getInt(6) == 1);
-            c.setFamilia(cursor.getInt(7) == 1);
-            c.setTrabajo(cursor.getInt(8) == 1);
-            cursor.moveToNext();
         }
     }
 

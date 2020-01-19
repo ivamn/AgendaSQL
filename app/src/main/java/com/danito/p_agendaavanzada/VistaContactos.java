@@ -26,7 +26,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.danito.p_agendaavanzada.Util.Layout;
 import com.danito.p_agendaavanzada.interfaces.OnImageClickListener;
-import com.danito.p_agendaavanzada.interfaces.OnRecyclerUpdated;
 import com.danito.p_agendaavanzada.pojo.Contacto;
 import com.danito.p_agendaavanzada.pojo.ContactoContainer;
 import com.danito.p_agendaavanzada.pojo.UpdateContainer;
@@ -37,7 +36,7 @@ import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 import static com.danito.p_agendaavanzada.Util.bitmapFromUri;
 
-public class VistaContactos extends Fragment implements View.OnClickListener, OnRecyclerUpdated {
+public class VistaContactos extends Fragment implements View.OnClickListener {
     private final int COD_ELEGIR_IMAGEN = 1;
     private final int COD_TOMAR_FOTO = 2;
     public AdaptadorCursorRecycler adaptador;
@@ -116,7 +115,6 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
 
     private void eliminarContacto(View v) {
         contactoViewModel.setData(new ContactoContainer(adaptador.getItem(recyclerView.getChildAdapterPosition(v)), Util.Accion.ELIMINAR));
-
     }
 
     private void tomarFoto() {
@@ -218,13 +216,6 @@ public class VistaContactos extends Fragment implements View.OnClickListener, On
             }
         });
         builder.create().show();
-    }
-
-    @Override
-    public void onRecyclerUpdated(Layout layout, Cursor cursor) {
-        this.layout = layout;
-        this.cursor = cursor;
-        updateRecycler();
     }
 
     private void updateRecycler() {
